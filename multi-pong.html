@@ -24,7 +24,6 @@
       }
 
       document.addEventListener("mousemove",function(event){
-        //console.log(event);
         movementX = event.movementX;
       });
 
@@ -33,6 +32,9 @@
       var playerThickness = 10;
       var movementY = false;
       var movementX = false;
+      var ShadowballSoundEffect = "SHA-dowball.wav";
+      var bopSound = "bop.wav";
+      // var bopSound = "";
 
       function createPongBall(yPositionInit, xPositionInit){
         var myRectangle = {colorR: Math.floor( Math.random() * 255 ),
@@ -45,11 +47,15 @@
           yIncrease: true,
           xIncrease: true,
           speedX: 1,
-          speedY: 0,
+          speedY: 2,
           lastHitBy: {},
           needsToBeRemoved: false
         };
         return myRectangle;
+      }
+
+      function createPowerUp(){
+
       }
 
       function createPlayer(yPosition, xPosition){
@@ -63,7 +69,8 @@
           angle: 90,
           visible: true,
           destroyed: false,
-          movingDown: true
+          movingDown: true,
+          powerups: []
           };
         return myNewPlayer;
       }
@@ -112,7 +119,7 @@
 
           var xReversed = false;
           var yReversed = false;
-
+          var collisionWithPlayer = false;
 
           if(pongBalls[i].yIncrease){
             pongBalls[i].yPos += pongBalls[i].speedY;
@@ -120,6 +127,7 @@
             pongBalls[i].yPos -= pongBalls[i].speedY;
           }
           if(pongBalls[i].yPos+pongBalls[i].height >= 400 || pongBalls[i].yPos <= 0){
+            pongBalls[i].speedY = -pongBalls[i].speedY;
             yReversed = true;
           }
 
@@ -129,6 +137,7 @@
             pongBalls[i].xPos -= pongBalls[i].speedX;
           }
           if(pongBalls[i].xPos+pongBalls[i].width >= 800 || pongBalls[i].xPos <= 0){
+            //pongBalls[i].speedX = -pongBalls[i].speedX;
             pongBalls[i].needsToBeRemoved = true;
           }
 
@@ -139,6 +148,13 @@
 
           for(var eachPlayer = 0; eachPlayer < players.length; eachPlayer++){
 
+            var MAXBOUNCEANGLE = 1*Math.PI/4;
+            var relativeIntersectY = 0;
+
+            if(pongBalls[i].speedY == 0){
+              pongBalls[i].speedY = 1;
+            }
+
             var playerTopLeft = [players[eachPlayer].xPos, players[eachPlayer].yPos];
             var playerTopRight = [players[eachPlayer].xPos + playerThickness, players[eachPlayer].yPos];
             var playerBottomLeft = [players[eachPlayer].xPos, players[eachPlayer].yPos + players[eachPlayer].size];
@@ -146,39 +162,56 @@
 
             if(ballTopLeft[0] >= playerTopLeft[0] && ballTopLeft[0] <= playerTopRight[0]){
               if(ballTopLeft[1] >= playerTopLeft[1] && ballTopLeft[1] <= playerBottomLeft[1]){
-                xReversed = true;
-                yReversed = true;
+                collisionWithPlayer = true;
+                relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopLeft[1] + ballBottomLeft[1]) / 2);
+                var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
+                var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
+                pongBalls[i].speedX = Math.cos(bounceAngle);
+                pongBalls[i].speedY = -Math.sin(bounceAngle);
               }
             }
 
             if(ballTopRight[0] >= playerTopLeft[0] && ballTopRight[0] <= playerTopRight[0]){
               if(ballTopRight[1] >= playerTopLeft[1] && ballTopRight[1] <= playerBottomLeft[1]){
-                xReversed = true;
-                yReversed = true;
+                collisionWithPlayer = true;
+                relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopRight[1] + ballBottomRight[1]) / 2);
+                var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
+                var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
+                pongBalls[i].speedX = -Math.cos(bounceAngle);
+                pongBalls[i].speedY = -Math.sin(bounceAngle);
               }
             }
 
             if(ballBottomLeft[0] >= playerTopLeft[0] && ballBottomLeft[0] <= playerTopRight[0]){
               if(ballBottomLeft[1] >= playerTopLeft[1] && ballBottomLeft[1] <= playerBottomLeft[1]){
-                xReversed = true;
-                yReversed = true;
+                collisionWithPlayer = true;
+                relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopLeft[1] + ballBottomLeft[1]) / 2);
+                var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
+                var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
+                pongBalls[i].speedX = Math.cos(bounceAngle);
+                pongBalls[i].speedY = -Math.sin(bounceAngle);
               }
             }
 
             if(ballBottomRight[0] >= playerTopLeft[0] && ballBottomRight[0] <= playerTopRight[0]){
               if(ballBottomRight[1] >= playerTopLeft[1] && ballBottomRight[1] <= playerBottomLeft[1]){
-                xReversed = true;
-                yReversed = true;
+                collisionWithPlayer = true;
+                relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopRight[1] + ballBottomRight[1]) / 2);
+                var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
+                var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
+                pongBalls[i].speedX = -Math.cos(bounceAngle);
+                pongBalls[i].speedY = -Math.sin(bounceAngle);
               }
             }
-          }
 
-          if(xReversed){
-            pongBalls[i].xIncrease = !pongBalls[i].xIncrease;
-          }
+            if(collisionWithPlayer){
+              xReversed = true;
+              yReversed = true;
 
-          if(yReversed){
-            pongBalls[i].yIncrease = !pongBalls[i].yIncrease;
+              pongBalls[i].lastHitBy = players[eachPlayer];
+              var snd = new Audio(bopSound);
+              snd.play();
+            }
           }
         }
 
