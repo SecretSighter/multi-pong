@@ -1,0 +1,198 @@
+<html>
+  <head>
+  </head>
+  <body id="mybody">
+    <canvas id="myCanvas" width="800" height="400" style="border: 1px solid #000000;">
+    </canvas>
+
+    <script>
+
+      document.getElementById("myCanvas").requestPointerLock = document.getElementById("myCanvas").requestPointerLock ||
+               document.getElementById("myCanvas").mozRequestPointerLock ||
+               document.getElementById("myCanvas").webkitRequestPointerLock;
+      // Ask the browser to lock the pointer
+      document.getElementById("myCanvas").requestPointerLock();
+
+      // Ask the browser to release the pointer
+      document.exitPointerLock = document.exitPointerLock ||
+             document.mozExitPointerLock ||
+             document.webkitExitPointerLock;
+      // document.exitPointerLock();
+
+      document.getElementById("myCanvas").onclick = function() {
+        document.getElementById("myCanvas").requestPointerLock();
+      }
+
+      document.addEventListener("mousemove",function(event){
+        //console.log(event);
+        movementX = event.movementX;
+      });
+
+      var c = document.getElementById("myCanvas");
+      var ctx = c.getContext("2d");
+      var playerThickness = 10;
+      var movementY = false;
+      var movementX = false;
+
+      function createPongBall(yPositionInit, xPositionInit){
+        var myRectangle = {colorR: Math.floor( Math.random() * 255 ),
+          colorG: Math.floor( Math.random() * 255 ),
+          colorB: Math.floor( Math.random() * 255 ),
+          height: 10,
+          width: 10,
+          yPos: Math.floor( Math.random() * 300 ) + 50,
+          xPos: Math.floor( Math.random() * 700 ) + 50,
+          yIncrease: true,
+          xIncrease: true,
+          speedX: 1,
+          speedY: 0,
+          lastHitBy: {},
+          needsToBeRemoved: false
+        };
+        return myRectangle;
+      }
+
+      function createPlayer(yPosition, xPosition){
+        var myNewPlayer = {
+          colorR: Math.floor( Math.random() * 255 ),
+          colorG: Math.floor( Math.random() * 255 ),
+          colorB: Math.floor( Math.random() * 255 ),
+          yPos: yPosition,
+          xPos: xPosition,
+          size: 80,
+          angle: 90,
+          visible: true,
+          destroyed: false,
+          movingDown: true
+          };
+        return myNewPlayer;
+      }
+
+      var pongBalls = [];
+      var players = [];
+      var borders = [];
+      var obstacles = [];
+
+      for(var i = 0; i < 100; i++){
+        pongBalls.push(createPongBall(100, 10));
+      }
+
+      players.push(createPlayer(0, 10));
+      players.push(createPlayer(0, 790));
+
+      window.setInterval(function(){
+        ctx.fillStyle = "#FFFFFF";
+        ctx.clearRect(0, 0, 800, 800);
+
+        for(var i = 0; i < players.length; i++){
+          ctx.strokeStyle = "rgb(" + players[i].colorR + "," + players[i].colorG + "," + players[i].colorB + ")";
+          ctx.beginPath();
+          ctx.moveTo(players[i].xPos, players[i].yPos);
+          ctx.lineTo(players[i].xPos, players[i].yPos + players[i].size);
+          ctx.lineWidth = playerThickness;
+          ctx.stroke();
+          ctx.closePath();
+          if(movementX > 0){
+            players[0].yPos += movementX;
+          } else if(movementX < 0) {
+            players[0].yPos += movementX;
+          }
+          if(players[i].yPos + players[i].size >= 400){
+            players[i].yPos = 400 - players[i].size;
+          }
+          if(players[i].yPos <= 0){
+            players[i].yPos = 0;
+          }
+          //ctx.fillRect(players[i].yPos, players[i].xPos, players[i].length, playerThickness);
+        }
+
+        for(var i = 0; i < pongBalls.length; i++){
+          ctx.fillStyle = "rgb(" + pongBalls[i].colorR + "," + pongBalls[i].colorG + "," + pongBalls[i].colorB + ")";
+          ctx.fillRect(pongBalls[i].xPos, pongBalls[i].yPos, pongBalls[i].height, pongBalls[i].width);
+
+          var xReversed = false;
+          var yReversed = false;
+
+
+          if(pongBalls[i].yIncrease){
+            pongBalls[i].yPos += pongBalls[i].speedY;
+          } else {
+            pongBalls[i].yPos -= pongBalls[i].speedY;
+          }
+          if(pongBalls[i].yPos+pongBalls[i].height >= 400 || pongBalls[i].yPos <= 0){
+            yReversed = true;
+          }
+
+          if(pongBalls[i].xIncrease){
+            pongBalls[i].xPos += pongBalls[i].speedX;
+          } else {
+            pongBalls[i].xPos -= pongBalls[i].speedX;
+          }
+          if(pongBalls[i].xPos+pongBalls[i].width >= 800 || pongBalls[i].xPos <= 0){
+            pongBalls[i].needsToBeRemoved = true;
+          }
+
+          var ballTopLeft = [pongBalls[i].xPos, pongBalls[i].yPos];
+          var ballTopRight = [pongBalls[i].xPos + pongBalls[i].width, pongBalls[i].yPos];
+          var ballBottomLeft = [pongBalls[i].xPos, pongBalls[i].yPos + pongBalls[i].height];
+          var ballBottomRight = [pongBalls[i].xPos + pongBalls[i].width, pongBalls[i].yPos + pongBalls[i].height];
+
+          for(var eachPlayer = 0; eachPlayer < players.length; eachPlayer++){
+
+            var playerTopLeft = [players[eachPlayer].xPos, players[eachPlayer].yPos];
+            var playerTopRight = [players[eachPlayer].xPos + playerThickness, players[eachPlayer].yPos];
+            var playerBottomLeft = [players[eachPlayer].xPos, players[eachPlayer].yPos + players[eachPlayer].size];
+            var playerBottomRight = [players[eachPlayer].xPos + playerThickness, players[eachPlayer].yPos + players[eachPlayer].size];
+
+            if(ballTopLeft[0] >= playerTopLeft[0] && ballTopLeft[0] <= playerTopRight[0]){
+              if(ballTopLeft[1] >= playerTopLeft[1] && ballTopLeft[1] <= playerBottomLeft[1]){
+                xReversed = true;
+                yReversed = true;
+              }
+            }
+
+            if(ballTopRight[0] >= playerTopLeft[0] && ballTopRight[0] <= playerTopRight[0]){
+              if(ballTopRight[1] >= playerTopLeft[1] && ballTopRight[1] <= playerBottomLeft[1]){
+                xReversed = true;
+                yReversed = true;
+              }
+            }
+
+            if(ballBottomLeft[0] >= playerTopLeft[0] && ballBottomLeft[0] <= playerTopRight[0]){
+              if(ballBottomLeft[1] >= playerTopLeft[1] && ballBottomLeft[1] <= playerBottomLeft[1]){
+                xReversed = true;
+                yReversed = true;
+              }
+            }
+
+            if(ballBottomRight[0] >= playerTopLeft[0] && ballBottomRight[0] <= playerTopRight[0]){
+              if(ballBottomRight[1] >= playerTopLeft[1] && ballBottomRight[1] <= playerBottomLeft[1]){
+                xReversed = true;
+                yReversed = true;
+              }
+            }
+          }
+
+          if(xReversed){
+            pongBalls[i].xIncrease = !pongBalls[i].xIncrease;
+          }
+
+          if(yReversed){
+            pongBalls[i].yIncrease = !pongBalls[i].yIncrease;
+          }
+        }
+
+        var newPongBalls = [];
+        for(var i = 0; i < pongBalls.length; i++){
+          if(!pongBalls[i].needsToBeRemoved){
+            newPongBalls.push(pongBalls[i]);
+          }
+        }
+
+        pongBalls = newPongBalls;
+        movementX = 0;
+
+      }, 5);
+    </script>
+  </body>
+</html>
