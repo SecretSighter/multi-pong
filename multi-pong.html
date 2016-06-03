@@ -48,9 +48,18 @@
           xIncrease: true,
           speedX: 1,
           speedY: 2,
+          tangible: true,
+          speedMultiplyer: Math.floor( Math.random() * 1 )+1,
           lastHitBy: {},
           needsToBeRemoved: false
         };
+
+        var randomTangibility = Math.floor(Math.random() * 2);
+        if(randomTangibility == 1){
+          myRectangle.tangible = false;
+        } else {
+          myRectangle.tangible = true;
+        }
         return myRectangle;
       }
 
@@ -86,6 +95,7 @@
 
       players.push(createPlayer(0, 10));
       players.push(createPlayer(0, 790));
+      players.push(createPlayer(250, 400));
 
       window.setInterval(function(){
         ctx.fillStyle = "#FFFFFF";
@@ -154,6 +164,9 @@
             if(pongBalls[i].speedY == 0){
               pongBalls[i].speedY = 1;
             }
+            if(pongBalls[i].speedX == 0){
+              pongBalls[i].speedX = 1;
+            }
 
             var playerTopLeft = [players[eachPlayer].xPos, players[eachPlayer].yPos];
             var playerTopRight = [players[eachPlayer].xPos + playerThickness, players[eachPlayer].yPos];
@@ -162,45 +175,69 @@
 
             if(ballTopLeft[0] >= playerTopLeft[0] && ballTopLeft[0] <= playerTopRight[0]){
               if(ballTopLeft[1] >= playerTopLeft[1] && ballTopLeft[1] <= playerBottomLeft[1]){
-                collisionWithPlayer = true;
-                relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopLeft[1] + ballBottomLeft[1]) / 2);
-                var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
-                var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
-                pongBalls[i].speedX = Math.cos(bounceAngle);
-                pongBalls[i].speedY = -Math.sin(bounceAngle);
+                if(pongBalls[i].tangible){
+                  collisionWithPlayer = true;
+                  relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopLeft[1] + ballBottomLeft[1]) / 2);
+                  var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
+                  var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
+                  pongBalls[i].speedX = pongBalls[i].speedXMultiplyer*Math.cos(bounceAngle);
+                  pongBalls[i].speedY = pongBalls[i].speedYMultiplyer*-Math.sin(bounceAngle);
+                  pongBalls[i].xPos = playerTopRight[0]+1;
+                } else {
+                  var snd = new Audio(ShadowballSoundEffect);
+                  snd.play();
+                }
               }
             }
 
             if(ballTopRight[0] >= playerTopLeft[0] && ballTopRight[0] <= playerTopRight[0]){
               if(ballTopRight[1] >= playerTopLeft[1] && ballTopRight[1] <= playerBottomLeft[1]){
-                collisionWithPlayer = true;
-                relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopRight[1] + ballBottomRight[1]) / 2);
-                var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
-                var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
-                pongBalls[i].speedX = -Math.cos(bounceAngle);
-                pongBalls[i].speedY = -Math.sin(bounceAngle);
+                if(pongBalls[i].tangible){
+                  collisionWithPlayer = true;
+                  relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopRight[1] + ballBottomRight[1]) / 2);
+                  var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
+                  var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
+                  pongBalls[i].speedX = pongBalls[i].speedMultiplyer*Math.cos(bounceAngle);
+                  pongBalls[i].speedY = pongBalls[i].speedMultiplyer*-Math.sin(bounceAngle);
+                  pongBalls[i].xPos = playerTopLeft[0]-pongBalls[i].width-1;
+                } else {
+                  var snd = new Audio(ShadowballSoundEffect);
+                  snd.play();
+                }
               }
             }
 
             if(ballBottomLeft[0] >= playerTopLeft[0] && ballBottomLeft[0] <= playerTopRight[0]){
               if(ballBottomLeft[1] >= playerTopLeft[1] && ballBottomLeft[1] <= playerBottomLeft[1]){
-                collisionWithPlayer = true;
-                relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopLeft[1] + ballBottomLeft[1]) / 2);
-                var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
-                var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
-                pongBalls[i].speedX = Math.cos(bounceAngle);
-                pongBalls[i].speedY = -Math.sin(bounceAngle);
+                if(pongBalls[i].tangible){
+                  collisionWithPlayer = true;
+                  relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopLeft[1] + ballBottomLeft[1]) / 2);
+                  var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
+                  var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
+                  pongBalls[i].speedX = pongBalls[i].speedMultiplyer*Math.cos(bounceAngle);
+                  pongBalls[i].speedY = pongBalls[i].speedMultiplyer*-Math.sin(bounceAngle);
+                  pongBalls[i].xPos = playerTopRight[0]+1;
+                } else {
+                  var snd = new Audio(ShadowballSoundEffect);
+                  snd.play();
+                }
               }
             }
 
             if(ballBottomRight[0] >= playerTopLeft[0] && ballBottomRight[0] <= playerTopRight[0]){
               if(ballBottomRight[1] >= playerTopLeft[1] && ballBottomRight[1] <= playerBottomLeft[1]){
-                collisionWithPlayer = true;
-                relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopRight[1] + ballBottomRight[1]) / 2);
-                var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
-                var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
-                pongBalls[i].speedX = -Math.cos(bounceAngle);
-                pongBalls[i].speedY = -Math.sin(bounceAngle);
+                if(pongBalls[i].tangible){
+                  collisionWithPlayer = true;
+                  relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopRight[1] + ballBottomRight[1]) / 2);
+                  var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
+                  var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
+                  pongBalls[i].speedX = pongBalls[i].speedMultiplyer*Math.cos(bounceAngle);
+                  pongBalls[i].speedY = pongBalls[i].speedMultiplyer*-Math.sin(bounceAngle);
+                  pongBalls[i].xPos = playerTopLeft[0]-pongBalls[i].width-1;
+                } else {
+                  var snd = new Audio(ShadowballSoundEffect);
+                  snd.play();
+                }
               }
             }
 
@@ -225,7 +262,7 @@
         pongBalls = newPongBalls;
         movementX = 0;
 
-      }, 5);
+      }, .01666);
     </script>
   </body>
 </html>
