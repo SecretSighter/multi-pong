@@ -54,3 +54,28 @@ obstacles -
 
 #How to look at collision detection in a non linear fashion.
 - Originally I was making the collision detection only work for geometric rectangles that have borders of only real x,y coordinates. But when you rotate a geometric shape to no longer have its sides only on real x,y coordinates you need to detect collision in a different way. One way that If found was by computing the area by making 4 triangles between the point of collision and the four corners. Compute the area of each triangle. If the area between among the 4 triangles equals the area of the actual rectangle than there is a collision. If the area is less or greater than the area among the triangles then the point is not within the geometric shape. I feel like there must be a less computational way...
+
+Upon collision find the distance from the center, and then based on rotation point find the nearest wall. then point the pong ball back at the center
+
+
+Given 560, 700 and 580, 760 calculate the slope
+
+Rise over Run, 760-700 = 60
+580 - 560 = 20
+
+60/20 = 6/2 = 3
+
+Given x = 560 and y = 700 calculate x using 700 = 3 * 560 + x
+
+-980 so the function of this line is f(x) = 3x - 980
+
+Given x = 580 solve for y
+
+Solve for tangent line by finding the midpoint
+
+(560 + 580) / 2, (700 + 760) / 2
+
+1140 / 2, 1460 / 2
+570, 730
+
+f(x) = -1/3x 
