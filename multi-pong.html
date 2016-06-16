@@ -5,6 +5,8 @@
     <canvas id="myCanvas" width="600" height="600" style="border: 1px solid #000000;">
     </canvas>
 
+    <script src="collision.js" type="text/javascript"></script>
+
     <script>
 
       document.getElementById("myCanvas").requestPointerLock = document.getElementById("myCanvas").requestPointerLock ||
@@ -115,33 +117,37 @@
         return myNewPlayer;
       }
 
-      var polygon1 = [{x:0, y:0}, {x:1, y:20}, {x:20, y:20}, {x:20,y:1}]
-      var polygon2 = [{x:0, y:30}, {x:31, y:61}, {x:61, y:61}, {x:61,y:30}]
+      var polygon1 = [{x:10, y:0}, {x:10, y:80}, {x:20, y:80}, {x:20,y:0}]
+      var polygon2 = [{x:36, y:398}, {x:36, y:408}, {x:46, y:408}, {x:46,y:398}]
       function checkCollision(polygon1, polygon2){
-        var numberOfSidesOfPolygon1 = polygon1.length;
-        var numberOfSidesOfPolygon2 = polygon2.length;
 
         var sideToCompare = 1;
-
         for(var side = 0; side < polygon1.length; side++){
 
-          var slopeOfSide1 = (polygon1[sideToCompare].y - polygon1[side].y) / (polygon1[sideToCompare].x - polygon1[side].x);
-          var inverseSlopeOfSide1 = -1/slopeOfSide1;
-          var midPointOfSide1 = {x: (polygon1[sideToCompare].y + polygon1[side].y)/2, y: (polygon1[sideToCompare].x + polygon1[side].x)/2}
+          var slopeOfSide = (polygon1[sideToCompare].y - polygon1[side].y) / (polygon1[sideToCompare].x - polygon1[side].x);
+          var inverseSlopeOfSide = -1/slopeOfSide;
+          var midPointOfSide1 = {x: (polygon1[sideToCompare].y + polygon1[side].y)/2, y: (polygon1[sideToCompare].x + polygon1[side].x)/2};
 
-          //f(x) = slopeOfSide1x + unknown
-          var unknown = midPointOfSide1.y - midPointOfSide1.x*inverseSlopeOfSide1;
+          //f(x) = slopeOfSidex + unknown
+          var unknown = midPointOfSide1.y - midPointOfSide1.x*inverseSlopeOfSide;
 
-          console.log("Slope: " + slopeOfSide1);
-          console.log("Inverse Slope: " + inverseSlopeOfSide1);
-          console.log("Midpoint: " + midPointOfSide1.x + ", " + midPointOfSide1.y);
-          console.log("Equation for 1stProjection: f(x)=" + inverseSlopeOfSide1 + "x" + " + " + unknown);
+          // console.log("Slope: " + slopeOfSide);
+          // console.log("Inverse Slope: " + inverseSlopeOfSide);
+          // console.log("Midpoint: " + midPointOfSide1.x + ", " + midPointOfSide1.y);
+          // console.log("Equation for Projection: f(x)=" + inverseSlopeOfSide + "x" + " + " + unknown);
 
-          var highestXForPolygon1;
-          var lowestXForPolygon1;
+          var highestXForPolygon1 = undefined;
+          var lowestXForPolygon1 = undefined;
           for(var i = 0; i < polygon1.length; i++){
-            var unknown2 = polygon1[i].y - polygon1[i].x*slopeOfSide1;
-            var newPoint = {x: (unknown2 - unknown) / (inverseSlopeOfSide1-slopeOfSide1)};
+            if(inverseSlopeOfSide == Number.POSITIVE_INFINITY || inverseSlopeOfSide == Number.NEGATIVE_INFINITY){
+              var newPoint = {x: polygon2[i].y};
+            } else if (inverseSlopeOfSide == 0){
+              var newPoint = {x: polygon1[i].x};
+            } else {
+              var unknown2 = polygon1[i].y - polygon1[i].x*slopeOfSide;
+              var newPoint = {x: (unknown2 - unknown) / (inverseSlopeOfSide-slopeOfSide)};
+            }
+
             if(newPoint.x > highestXForPolygon1 || typeof highestXForPolygon1 == 'undefined'){
               highestXForPolygon1 = newPoint.x;
             }
@@ -149,11 +155,17 @@
               lowestXForPolygon1 = newPoint.x;
             }
           }
-          var highestXForPolygon2;
-          var lowestXForPolygon2;
+          var highestXForPolygon2 = undefined;
+          var lowestXForPolygon2 = undefined;
           for(var i = 0; i < polygon2.length; i++){
-            var unknown2 = polygon2[i].y - polygon2[i].x*slopeOfSide1;
-            var newPoint = {x: (unknown2 - unknown) / (inverseSlopeOfSide1-slopeOfSide1)};
+            if(inverseSlopeOfSide == Number.POSITIVE_INFINITY || inverseSlopeOfSide == Number.NEGATIVE_INFINITY){
+              var newPoint = {x: polygon2[i].y};
+            } else if (inverseSlopeOfSide == 0){
+              var newPoint = {x: polygon2[i].x};
+            } else {
+              var unknown2 = polygon2[i].y - polygon2[i].x*slopeOfSide;
+              var newPoint = {x: (unknown2 - unknown) / (inverseSlopeOfSide-slopeOfSide)};
+            }
             if(newPoint.x > highestXForPolygon2 || typeof highestXForPolygon2 == 'undefined'){
               highestXForPolygon2 = newPoint.x;
             }
@@ -162,24 +174,101 @@
             }
           }
 
-          // if(lowestXForPolygon2 - highestXForPolygon1 > 0 || lowestXForPolygon1 - highestXForPolygon2 > 0){
-          //   return false;
-          // }
+          if(lowestXForPolygon2 > highestXForPolygon1 && lowestXForPolygon1 < highestXForPolygon2){
+            return false;
+          }
 
-          console.log("Lowest Polygon1X: ");
-          console.log(lowestXForPolygon1);
-          console.log("Highest Polygon1X: ");
-          console.log(highestXForPolygon1);
-          console.log("Lowest Polygon2X: ");
-          console.log(lowestXForPolygon2);
-          console.log("Highest Polygon2X: ");
-          console.log(highestXForPolygon2);
+          // console.log("Lowest Polygon1X: ");
+          // console.log(lowestXForPolygon1);
+          // console.log("Highest Polygon1X: ");
+          // console.log(highestXForPolygon1);
+          // console.log("Lowest Polygon2X: ");
+          // console.log(lowestXForPolygon2);
+          // console.log("Highest Polygon2X: ");
+          // console.log(highestXForPolygon2);
 
           sideToCompare++;
           if(sideToCompare >= polygon1.length){
             sideToCompare = 0;
           }
         }
+
+        sideToCompare = 1;
+        for(var side = 0; side < polygon2.length; side++){
+
+          var slopeOfSide = (polygon2[sideToCompare].y - polygon2[side].y) / (polygon2[sideToCompare].x - polygon2[side].x);
+          var inverseSlopeOfSide = -1/slopeOfSide;
+          var midPointOfSide1 = {x: (polygon2[sideToCompare].y + polygon2[side].y)/2, y: (polygon2[sideToCompare].x + polygon2[side].x)/2};
+
+          //f(x) = slopeOfSidex + unknown
+          var unknown = midPointOfSide1.y - midPointOfSide1.x*inverseSlopeOfSide;
+
+          // console.log("Slope: " + slopeOfSide);
+          // console.log("Inverse Slope: " + inverseSlopeOfSide);
+          // console.log("Midpoint: " + midPointOfSide1.x + ", " + midPointOfSide1.y);
+          // console.log("Equation for Projection: f(x)=" + inverseSlopeOfSide + "x" + " + " + unknown);
+
+          var highestXForPolygon1 = undefined;
+          var lowestXForPolygon1 = undefined;
+
+          for(var i = 0; i < polygon1.length; i++){
+            var newPoint = {};
+
+            if(inverseSlopeOfSide == Number.POSITIVE_INFINITY || inverseSlopeOfSide == Number.NEGATIVE_INFINITY){
+              newPoint.x = polygon1[i].y;
+            } else if (inverseSlopeOfSide == 0){
+              newPoint.x = polygon1[i].x;
+            } else {
+              var unknown2 = polygon1[i].y - polygon1[i].x*slopeOfSide;
+              newPoint.x = (unknown2 - unknown) / (inverseSlopeOfSide-slopeOfSide);
+            }
+
+            if(newPoint.x > highestXForPolygon1 || typeof highestXForPolygon1 == 'undefined'){
+              highestXForPolygon1 = newPoint.x;
+            }
+            if(newPoint.x < lowestXForPolygon1 || typeof lowestXForPolygon1 == 'undefined'){
+              lowestXForPolygon1 = newPoint.x;
+            }
+          }
+          var highestXForPolygon2 = undefined;
+          var lowestXForPolygon2 = undefined;
+          for(var i = 0; i < polygon2.length; i++){
+            var newPoint
+            if(inverseSlopeOfSide == Number.POSITIVE_INFINITY || inverseSlopeOfSide == Number.NEGATIVE_INFINITY){
+              newPoint = {x: polygon2[i].y};
+            } else if (inverseSlopeOfSide == 0){
+              newPoint = {x: polygon2[i].x};
+            } else {
+              var unknown2 = polygon2[i].y - polygon2[i].x*slopeOfSide;
+              newPoint = {x: (unknown2 - unknown) / (inverseSlopeOfSide-slopeOfSide)};
+            }
+            if(newPoint.x > highestXForPolygon2 || typeof highestXForPolygon2 == 'undefined'){
+              highestXForPolygon2 = newPoint.x;
+            }
+            if(newPoint.x < lowestXForPolygon2 || typeof lowestXForPolygon2 == 'undefined'){
+              lowestXForPolygon2 = newPoint.x;
+            }
+          }
+
+          if(lowestXForPolygon1 > highestXForPolygon2 && lowestXForPolygon2 < highestXForPolygon1){
+            return false;
+          }
+
+          // console.log("Lowest Polygon1X: ");
+          // console.log(lowestXForPolygon1);
+          // console.log("Highest Polygon1X: ");
+          // console.log(highestXForPolygon1);
+          // console.log("Lowest Polygon2X: ");
+          // console.log(lowestXForPolygon2);
+          // console.log("Highest Polygon2X: ");
+          // console.log(highestXForPolygon2);
+
+          sideToCompare++;
+          if(sideToCompare >= polygon2.length){
+            sideToCompare = 0;
+          }
+        }
+        return true;
       }
 
       var pongBalls = [];
@@ -187,7 +276,7 @@
       var borders = [];
       var obstacles = [];
 
-      for(var i = 0; i < 10; i++){
+      for(var i = 0; i < 1; i++){
         pongBalls.push(createPongBall(100, 10));
       }
 
@@ -201,7 +290,6 @@
 
         for(var i = 0; i < pongBalls.length; i++){
 
-
           var xReversed = false;
           var yReversed = false;
           var collisionWithPlayer = false;
@@ -213,7 +301,7 @@
           }
           if(pongBalls[i].yPos+pongBalls[i].height >= canvasHeight|| pongBalls[i].yPos <= 0){
             pongBalls[i].speedY = -pongBalls[i].speedY;
-            yReversed = true;
+            // yReversed = true;
           }
 
           if(pongBalls[i].xIncrease){
@@ -230,7 +318,8 @@
           var ballTopRight = [pongBalls[i].xPos + pongBalls[i].width, pongBalls[i].yPos];
           var ballBottomLeft = [pongBalls[i].xPos, pongBalls[i].yPos + pongBalls[i].height];
           var ballBottomRight = [pongBalls[i].xPos + pongBalls[i].width, pongBalls[i].yPos + pongBalls[i].height];
-          var ballCenter = [pongBalls[i].xPos + pongBalls[i].width/2, pongBalls[i].yPos + pongBalls[i].height/2];
+
+          var ball = [{x:ballTopLeft[0], y:ballTopLeft[1]}, {x:ballBottomLeft[0], y:ballBottomLeft[1]}, {x:ballBottomRight[0], y:ballBottomRight[1]}, {x:ballTopRight[0], y:ballTopRight[1]}];
 
           for(var eachPlayer = 0; eachPlayer < players.length; eachPlayer++){
 
@@ -248,124 +337,29 @@
             var playerTopRight = [players[eachPlayer].xPos + playerThickness, players[eachPlayer].yPos];
             var playerBottomLeft = [players[eachPlayer].xPos, players[eachPlayer].yPos + players[eachPlayer].size];
             var playerBottomRight = [players[eachPlayer].xPos + playerThickness, players[eachPlayer].yPos + players[eachPlayer].size];
-            var areaOfPlayer = players[eachPlayer].size * playerThickness;
 
-            var areaOfRectangleWithBall1 = 1/2*Math.abs(playerTopLeft[0]*playerTopRight[1] +
-              playerTopRight[0]*ballCenter[1] +
-              ballCenter[0]*playerTopLeft[1] -
-              playerTopRight[0]*playerTopLeft[1] -
-              ballCenter[0]*playerTopRight[1] -
-              playerTopLeft[0]*ballCenter[1]
-            );
+            var player = [{x:playerTopLeft[0], y:playerTopLeft[1]}, {x:playerBottomLeft[0], y:playerBottomLeft[1]}, {x:playerBottomRight[0], y:playerBottomRight[1]}, {x:playerTopRight[0], y:playerTopRight[1]}];
 
-            var areaOfRectangleWithBall2 = 1/2*Math.abs(playerBottomRight[0]*playerTopRight[1] +
-              playerTopRight[0]*ballCenter[1] +
-              ballCenter[0]*playerBottomRight[1] -
-              playerTopRight[0]*playerBottomRight[1] -
-              ballCenter[0]*playerTopRight[1] -
-              playerTopLeft[0]*ballCenter[1]
-            );
-
-            var areaOfRectangleWithBall3 = 1/2*Math.abs(playerBottomLeft[0]*playerBottomRight[1] +
-              playerBottomRight[0]*ballCenter[1] +
-              ballCenter[0]*playerBottomLeft[1] -
-              playerBottomRight[0]*playerBottomLeft[1] -
-              ballCenter[0]*playerBottomRight[1] -
-              playerTopLeft[0]*ballCenter[1]
-            );
-
-            var areaOfRectangleWithBall4 = 1/2*Math.abs(playerTopLeft[0]*playerBottomLeft[1] +
-              playerBottomLeft[0]*ballCenter[1] +
-              ballCenter[0]*playerTopLeft[1] -
-              playerBottomLeft[0]*playerTopLeft[1] -
-              ballCenter[0]*playerBottomLeft[1] -
-              playerTopLeft[0]*ballCenter[1]
-            );
-
-            if(areaOfPlayer >= areaOfRectangleWithBall1 + areaOfRectangleWithBall2 + areaOfRectangleWithBall3 + areaOfRectangleWithBall4){
-              if(pongBalls[i].tangible){
-                // collisionWithPlayer = true;
-                // relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - (ballCenter[1] + ballBottomLeft[1]);
-                // var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
-                // var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
-                //  console.log(bounceAngle);
-                // pongBalls[i].speedX = pongBalls[i].speedXMultiplyer*Math.cos(bounceAngle);
-                pongBalls[i].speedX = -pongBalls[i].speedX;
-                pongBalls[i].speedY = -pongBalls[i].speedY;
-                // pongBalls[i].speedY = pongBalls[i].speedYMultiplyer*-Math.sin(bounceAngle);
-                //pongBalls[i].xPos = playerTopRight[0]+1;
-                // console.log(pongBalls[i].xPos);
-              } else {
-                var snd = new Audio(ShadowballSoundEffect);
-                // snd.play();
-              }
+            if(checkCollision(ball, player)){
+              collisionWithPlayer = true;
             }
 
-            // if(ballTopLeft[0] >= playerTopLeft[0] && ballTopLeft[0] <= playerTopRight[0]){
-            //   if(ballTopLeft[1] >= playerTopLeft[1] && ballTopLeft[1] <= playerBottomLeft[1]){
-            //     if(pongBalls[i].tangible){
-            //       collisionWithPlayer = true;
-            //       relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopLeft[1] + ballBottomLeft[1]) / 2);
-            //       var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
-            //       var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
-            //       pongBalls[i].speedX = pongBalls[i].speedXMultiplyer*Math.cos(bounceAngle);
-            //       pongBalls[i].speedY = pongBalls[i].speedYMultiplyer*-Math.sin(bounceAngle);
-            //       pongBalls[i].xPos = playerTopRight[0]+1;
-            //     } else {
-            //       var snd = new Audio(ShadowballSoundEffect);
-            //       // snd.play();
-            //     }
-            //   }
-            // }
-
-            // if(ballTopRight[0] >= playerTopLeft[0] && ballTopRight[0] <= playerTopRight[0]){
-            //   if(ballTopRight[1] >= playerTopLeft[1] && ballTopRight[1] <= playerBottomLeft[1]){
-            //     if(pongBalls[i].tangible){
-            //       collisionWithPlayer = true;
-            //       relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopRight[1] + ballBottomRight[1]) / 2);
-            //       var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
-            //       var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
-            //       pongBalls[i].speedX = pongBalls[i].speedMultiplyer*Math.cos(bounceAngle);
-            //       pongBalls[i].speedY = pongBalls[i].speedMultiplyer*-Math.sin(bounceAngle);
-            //       pongBalls[i].xPos = playerTopLeft[0]-pongBalls[i].width-1;
-            //     } else {
-            //       var snd = new Audio(ShadowballSoundEffect);
-            //       // snd.play();
-            //     }
-            //   }
-            // }
-            //
-            // if(ballBottomLeft[0] >= playerTopLeft[0] && ballBottomLeft[0] <= playerTopRight[0]){
-            //   if(ballBottomLeft[1] >= playerTopLeft[1] && ballBottomLeft[1] <= playerBottomLeft[1]){
-            //     if(pongBalls[i].tangible){
-            //       collisionWithPlayer = true;
-            //       relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopLeft[1] + ballBottomLeft[1]) / 2);
-            //       var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
-            //       var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
-            //       pongBalls[i].speedX = pongBalls[i].speedMultiplyer*Math.cos(bounceAngle);
-            //       pongBalls[i].speedY = pongBalls[i].speedMultiplyer*-Math.sin(bounceAngle);
-            //       pongBalls[i].xPos = playerTopRight[0]+1;
-            //     } else {
-            //       var snd = new Audio(ShadowballSoundEffect);
-            //       // snd.play();
-            //     }
-            //   }
-            // }
-            //
-            // if(ballBottomRight[0] >= playerTopLeft[0] && ballBottomRight[0] <= playerTopRight[0]){
-            //   if(ballBottomRight[1] >= playerTopLeft[1] && ballBottomRight[1] <= playerBottomLeft[1]){
-            //     if(pongBalls[i].tangible){
-            //       collisionWithPlayer = true;
-            //       relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - ((ballTopRight[1] + ballBottomRight[1]) / 2);
-            //       var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
-            //       var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
-            //       pongBalls[i].speedX = pongBalls[i].speedMultiplyer*Math.cos(bounceAngle);
-            //       pongBalls[i].speedY = pongBalls[i].speedMultiplyer*-Math.sin(bounceAngle);
-            //       pongBalls[i].xPos = playerTopLeft[0]-pongBalls[i].width-1;
-            //     } else {
-            //       var snd = new Audio(ShadowballSoundEffect);
-            //       // snd.play();
-            //     }
+            // if(areaOfPlayer >= areaOfRectangleWithBall1 + areaOfRectangleWithBall2 + areaOfRectangleWithBall3 + areaOfRectangleWithBall4){
+            //   if(pongBalls[i].tangible){
+            //     // collisionWithPlayer = true;
+            //     // relativeIntersectY = (players[eachPlayer].yPos+(players[eachPlayer].size/2)) - (ballCenter[1] + ballBottomLeft[1]);
+            //     // var normalizedRelativeIntersectionY = (relativeIntersectY/(players[eachPlayer].size/2));
+            //     // var bounceAngle = normalizedRelativeIntersectionY * MAXBOUNCEANGLE;
+            //     //  console.log(bounceAngle);
+            //     // pongBalls[i].speedX = pongBalls[i].speedXMultiplyer*Math.cos(bounceAngle);
+            //     pongBalls[i].speedX = -pongBalls[i].speedX;
+            //     pongBalls[i].speedY = -pongBalls[i].speedY;
+            //     // pongBalls[i].speedY = pongBalls[i].speedYMultiplyer*-Math.sin(bounceAngle);
+            //     //pongBalls[i].xPos = playerTopRight[0]+1;
+            //     // console.log(pongBalls[i].xPos);
+            //   } else {
+            //     var snd = new Audio(ShadowballSoundEffect);
+            //     // snd.play();
             //   }
             // }
 
@@ -387,6 +381,7 @@
           }
         }
 
+        //drawing functionality
         ctx.fillStyle = "#FFFFFF";
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
