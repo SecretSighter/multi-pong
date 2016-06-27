@@ -39,6 +39,7 @@
       var canvasWidth = 600;
       var canvasHeight = 600;
       var centerPoint = {x: canvasWidth/2, y: canvasHeight/2};
+      var playerDefaultSize = 80;
       // var bopSound = "";
 
       function createPongBall(yPositionInit, xPositionInit){
@@ -68,29 +69,63 @@
         return myRectangle;
       }
 
-      function rotatePoint(pointX, pointY, angle, newPointX, newPointY){
+      function rotatePoint(pointX, pointY, angle, distance){
 
         var newPoint = {};
-        newPoint.x = newPointX;
-        newPoint.y = newPointY;
 
-        var cosin = Math.cos(angle*Math.PI/180);
-        var sin = Math.sin(angle*Math.PI/180);
+        var cosin = Math.cos(angle*Math.PI/180)*distance;
+        var sin = Math.sin(angle*Math.PI/180)*distance;
 
-        newPoint.x -= pointX;
-        newPoint.y -= pointY;
+        newPoint.x = pointX;
+        newPoint.y = pointY;
 
-        var xNew = newPoint.x * cosin - newPoint.y * sin;
-        var yNew = newPoint.x * sin + newPoint.y * cosin;
+        var xNew = pointX + cosin;
+        var yNew = pointY + sin;
 
-        newPoint.x = xNew + pointX;
-        newPoint.y = yNew + pointY;
+        newPoint.x = xNew;
+        newPoint.y = yNew;
 
         return newPoint;
       }
 
       function createPowerUp(){
 
+      }
+
+      function findCollisionPoint(ball, player, speedX, speedY){
+        // console.log(speedX, speedY);
+        //We only need to be concerned with the longer sides, not the short sides;
+        var slopeOfLine1 = (player[0].y - player[1].y) / (player[0].x - player[1].x);
+        var bOfSlope1 = player[0].y - player[0].x * slopeOfLine1;
+
+        // console.log(player);
+
+        // console.log(slopeOfLine1 + "x + " + bOfSlope1);
+
+        var slopeOfLine3 = (player[2].y - player[3].y) / (player[2].x - player[3].y);
+        var bOfSlope3 = player[2].y - player[2].x * slopeOfLine3;
+
+        // console.log(slopeOfLine3 + "x + " + bOfSlope3);
+
+        var slopeOfBall = speedY/speedX;
+        var bOfBallSlope = ball.y - ball.x * slopeOfBall;
+
+        var intersectOfLine1X = (bOfSlope1 - bOfBallSlope) / (slopeOfBall - slopeOfLine1);
+        var intersectOfLine1Y = slopeOfBall*intersectOfLine1X + bOfBallSlope;
+
+        var intersectOfLine3X = (bOfSlope3 - bOfBallSlope) / (slopeOfBall - slopeOfLine3);
+        var intersectOfLine3Y = slopeOfBall*intersectOfLine3X + bOfBallSlope;
+
+        var distanceOfLine1 = Math.sqrt(Math.abs((ball.x - intersectOfLine1X)^2 + (ball.y - intersectOfLine1Y)^2));
+        var distanceOfLine3 = Math.sqrt(Math.abs((ball.x - intersectOfLine3X)^2 + (ball.y - intersectOfLine3Y)^2));
+        console.log("Distance 1: " + distanceOfLine1);
+        console.log("Distance 2: " + distanceOfLine3);
+
+        if(distanceOfLine1 < distanceOfLine3){
+          console.log('hit line1');
+        } else {
+          console.log('hit line2');
+        }
       }
 
       function createPlayer(xPosition, yPosition, rotation){
@@ -102,7 +137,7 @@
           xPos: xPosition,
           newXPos: xPosition,
           newYPos: yPosition,
-          size: 80,
+          size: playerDefaultSize,
           angle: 90,
           visible: true,
           destroyed: false,
@@ -114,6 +149,9 @@
         if(rotation){
           myNewPlayer.rotation = rotation;
         }
+
+
+
         return myNewPlayer;
       }
 
@@ -126,9 +164,9 @@
         pongBalls.push(createPongBall(100, 10));
       }
 
-      players.push(createPlayer(10, 0, 90));
-      players.push(createPlayer(canvasWidth/2, 0, 90));
-      players.push(createPlayer(canvasWidth-10, 0, 90));
+      players.push(createPlayer(10, playerDefaultSize/2, 75));
+      players.push(createPlayer(canvasWidth/2, playerDefaultSize/2, 90));
+      players.push(createPlayer(canvasWidth-10, playerDefaultSize/2, 90));
       var controlledCharacter = players[0];
 
       window.setInterval(function(){
@@ -179,15 +217,29 @@
               pongBalls[i].speedX = 1;
             }
 
-            var playerTopLeft = [players[eachPlayer].xPos, players[eachPlayer].yPos];
-            var playerTopRight = [players[eachPlayer].xPos + playerThickness, players[eachPlayer].yPos];
-            var playerBottomLeft = [players[eachPlayer].xPos, players[eachPlayer].yPos + players[eachPlayer].size];
-            var playerBottomRight = [players[eachPlayer].xPos + playerThickness, players[eachPlayer].yPos + players[eachPlayer].size];
+            var distanceFromCenter = players[eachPlayer].size/Math.cos(players[eachPlayer].rotation*Math.PI/180);
+            // console.log("Center: ");
+            // console.log(players[i].xPos)
+            var startPoint = rotatePoint(players[eachPlayer].xPos, players[eachPlayer].yPos, players[eachPlayer].rotation, players[eachPlayer].size/2);
+            var topLeft = rotatePoint(startPoint.x, startPoint.y, players[eachPlayer].rotation+270, playerThickness/2);
+            var topRight = rotatePoint(startPoint.x, startPoint.y, players[eachPlayer].rotation+90, playerThickness/2);
+
+            // console.log(topLeft);
+            var endPoint = rotatePoint(players[eachPlayer].xPos, players[eachPlayer].yPos, players[eachPlayer].rotation+180, players[eachPlayer].size/2);
+            var bottomLeft = rotatePoint(endPoint.x, endPoint.y, players[eachPlayer].rotation+180+90, playerThickness/2);
+            var bottomRight = rotatePoint(endPoint.x, endPoint.y, players[eachPlayer].rotation+180-90, playerThickness/2);
+
+            var playerTopLeft = [topLeft.x, topLeft.y];
+            var playerTopRight = [topRight.x, topRight.y];
+            var playerBottomLeft = [bottomLeft.x, bottomLeft.y];
+            var playerBottomRight = [bottomRight.x, bottomRight.y];
 
             var player = [{x:playerTopLeft[0], y:playerTopLeft[1]}, {x:playerBottomLeft[0], y:playerBottomLeft[1]}, {x:playerBottomRight[0], y:playerBottomRight[1]}, {x:playerTopRight[0], y:playerTopRight[1]}];
 
             if(checkCollision(ball, player)){
               collisionWithPlayer = true;
+              console.log('hit');
+              findCollisionPoint({x:pongBalls[i].xPos + pongBalls[i].width/2, y:pongBalls[i].yPos + pongBalls[i].height/2}, player, pongBalls[i].speedX, pongBalls[i].speedY);
             }
 
             // if(areaOfPlayer >= areaOfRectangleWithBall1 + areaOfRectangleWithBall2 + areaOfRectangleWithBall3 + areaOfRectangleWithBall4){
@@ -213,9 +265,12 @@
               xReversed = true;
               yReversed = true;
 
+                  pongBalls[i].speedX = -pongBalls[i].speedX;
+                  pongBalls[i].speedY = -pongBalls[i].speedY;
+
               pongBalls[i].lastHitBy = players[eachPlayer];
               var snd = new Audio(bopSound);
-              // snd.play();
+            //  snd.play();
             }
           }
         }
@@ -239,23 +294,42 @@
         for(var i = 0; i < players.length; i++){
           ctx.strokeStyle = "rgb(" + players[i].colorR + "," + players[i].colorG + "," + players[i].colorB + ")";
           ctx.beginPath();
-          ctx.moveTo(players[i].xPos, players[i].yPos);
 
-          var newPoint = rotatePoint(players[i].xPos, players[i].yPos, players[i].rotation, players[i].xPos+players[i].size, players[i].yPos);
+          var startPoint = rotatePoint(players[i].xPos, players[i].yPos, players[i].rotation, players[i].size/2);
+          var endPoint = rotatePoint(players[i].xPos, players[i].yPos, players[i].rotation+180, players[i].size/2);
 
-          players[i].newXPos = newPoint.x;
-          players[i].newYPos = newPoint.y;
-
-          ctx.lineTo(players[i].newXPos, players[i].newYPos);
+          ctx.moveTo(startPoint.x, startPoint.y);
+          ctx.lineTo(endPoint.x, endPoint.y);
           ctx.lineWidth = playerThickness;
           ctx.stroke();
           ctx.closePath();
 
-          if(movementX != 0){
-            var Angle = Math.atan2(controlledCharacter.newYPos - controlledCharacter.yPos, controlledCharacter.newXPos - controlledCharacter.xPos);
-            controlledCharacter.xPos += Math.cos(Angle) * movementX;
-            controlledCharacter.yPos += Math.sin(Angle) * movementX;
+          if(controlledCharacter.xPos < 0){
+            controlledCharacter.xPos = 0;
+            movementX = 0;
           }
+          if(controlledCharacter.xPos > canvasWidth){
+            controlledCharacter.xPos = canvasWidth;
+            movementX = 0;
+
+          }
+          if(controlledCharacter.yPos < 0){
+            controlledCharacter.yPos = 0;
+            movementX = 0;
+
+          }
+          if(controlledCharacter.yPos > canvasHeight){
+            controlledCharacter.yPos = canvasHeight;
+            movementX = 0;
+
+          }
+
+          if(movementX != 0){
+            controlledCharacter.xPos += Math.cos(controlledCharacter.rotation*Math.PI/180) * movementX;
+            controlledCharacter.yPos += Math.sin(controlledCharacter.rotation*Math.PI/180) * movementX;
+          }
+
+
           //ctx.fillRect(players[i].yPos, players[i].xPos, players[i].length, playerThickness);
         }
 

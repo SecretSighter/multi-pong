@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>My first Three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 80%; height: 80% }
+		</style>
+	</head>
+	<body>
+		<script src="three.js"></script>
+		<script>
+		var mouse = new THREE.Vector2();
+		document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+		function onDocumentMouseMove( event ) {
+				event.preventDefault();
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+				// console.log(mouse);
+			}
+
+		var collidableMeshList = [];
+
+			var pongSize = .5;
+			var pongBallSpeedX = .1;
+			var pongBallSpeedY = .1;
+			var raycaster = new THREE.Raycaster();
+
+			var scene = new THREE.Scene();
+			var camera = new THREE.PerspectiveCamera( 200, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+
+			var geometry = new THREE.PlaneGeometry( .5, 5);
+			var cubeGeometry = new THREE.CubeGeometry(.5, 5, 5);
+			var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+			var paddle1 = new THREE.Mesh( geometry, material );
+			var paddle1BoundingBox = new THREE.Mesh(cubeGeometry, new THREE.MeshBasicMaterial({transparent: true, opacity: .2, color: 0x00ff00}))
+			var paddle2 = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial( { color: 0x00ffff } ));
+			var paddle2BoundingBox = new THREE.Mesh(cubeGeometry, new THREE.MeshBasicMaterial({transparent: true, opacity: .2, color: 0x00ff00}))
+
+			var pongGeometry = new THREE.CircleGeometry(pongSize, 32);
+			var pongBall = new THREE.Mesh(pongGeometry, new THREE.MeshBasicMaterial({color: 0xffff00}));
+			paddle1.add(paddle1BoundingBox);
+			paddle2.add(paddle2BoundingBox);
+			// paddle2.rotation.x = .9;
+			paddle2.position.x = -50;
+			paddle1.position.x = 50;
+			scene.add(pongBall);
+			scene.add(paddle1);
+			scene.add(paddle2);
+
+			collidableMeshList.push(paddle1BoundingBox);
+			collidableMeshList.push(paddle2BoundingBox);
+
+			camera.position.z = 5;
+
+			// console.log(collidableMeshList);
+
+			var render = function () {
+				requestAnimationFrame( render );
+
+				// camera.position.x += .1;
+				// cube.rotation.y += 0.1;
+
+				//raycaster.set(pongBall.position, new THREE.Vector3(pongBallSpeedX, pongBallSpeedY, 0));
+
+				var intersects = raycaster.intersectObjects(scene.children);
+				// console.log(intersects);
+
+				var originPoint = pongBall.position.clone();
+				for (var vertexIndex = 0; vertexIndex < pongBall.geometry.vertices.length; vertexIndex++)
+				{
+					var localVertex = pongBall.geometry.vertices[vertexIndex].clone();
+					var globalVertex = localVertex.applyMatrix4( pongBall.matrix );
+					var directionVector = globalVertex.sub( pongBall.position );
+					// console.log(globalVertex);
+
+					var ray = new THREE.Raycaster( );
+					ray.set(originPoint, directionVector );
+					var collisionResults = ray.intersectObjects( collidableMeshList );
+					// for(var boxI = 0; boxI < collidableMeshList.length; boxI++){
+					// 	var localBox = new THREE.Box2(new THREE.Vector2(collidableMeshList[boxI].position.x, collidableMeshList[boxI].position.y), new THREE.Vector2(collidableMeshList[boxI].position.x, collidableMeshList[boxI].position.y));
+					// 	for(var i = 0; i < collidableMeshList[boxI].geometry.vertices.length; i++){
+					// 		var originalVector = new THREE.Vector2(collidableMeshList[boxI].position.x, collidableMeshList[boxI].position.y);
+					// 		var newVertice = originalVector.add(new THREE.Vector2(collidableMeshList[boxI].geometry.vertices[i].x, collidableMeshList[boxI].geometry.vertices[i].y));
+					// 		localBox.expandByPoint(newVertice);
+					// 	}
+					// 	if(localBox.distanceToPoint(new THREE.Vector2(originPoint.x, originPoint.y).add(new THREE.Vector2(localVertex.x, localVertex.y))) == 0){
+					// 			pongBallSpeedX = -pongBallSpeedX;
+					// 			pongBallSpeedY = -pongBallSpeedY;
+					// 	}
+					// }
+					// console.log(collisionResults);
+					if ( collisionResults.length > 0 && collisionResults[0].distance < directionVector.length() ){
+						console.log(collisionResults);
+						pongBall.position = collisionResults[0].point.add(pongBall.position);
+						pongBallSpeedX = -pongBallSpeedX;
+						pongBallSpeedY = -pongBallSpeedY;
+						console.log('hit');
+					}
+				}
+
+				for(var boxI = 0; boxI < collidableMeshList.length; boxI++){
+					var localBox = new THREE.Box2(new THREE.Vector2(collidableMeshList[boxI].position.x, collidableMeshList[boxI].position.y), new THREE.Vector2(collidableMeshList[boxI].position.x, collidableMeshList[boxI].position.y));
+					for(var i = 0; i < collidableMeshList[boxI].geometry.vertices.length; i++){
+						var originalVector = new THREE.Vector2(collidableMeshList[boxI].position.x, collidableMeshList[boxI].position.y);
+						var newVertice = originalVector.add(new THREE.Vector2(collidableMeshList[boxI].geometry.vertices[i].x, collidableMeshList[boxI].geometry.vertices[i].y));
+						localBox.expandByPoint(newVertice);
+					}
+				}
+
+				// if(distance())
+
+				pongBall.position.x += pongBallSpeedX;
+				pongBall.position.y += pongBallSpeedY;
+
+				if(pongBall.position.x > 52 || pongBall.position.x < -52){
+					pongBallSpeedX = -pongBallSpeedX;
+				}
+
+				if(pongBall.position.y > 25 || pongBall.position.y < -25){
+					pongBallSpeedY = -pongBallSpeedY;
+				}
+
+				renderer.render(scene, camera);
+			};
+
+			render();
+		</script>
+	</body>
+</html>

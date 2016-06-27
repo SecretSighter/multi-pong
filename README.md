@@ -78,4 +78,9 @@ Solve for tangent line by finding the midpoint
 1140 / 2, 1460 / 2
 570, 730
 
-f(x) = -1/3x 
+f(x) = -1/3x
+
+Given a point, 4 faces, and a direction is it possible to determine which face gets hit first? given a positive slope you can know that the the point hit first is the lesser x, given a negative slope you know that the first hit is the greater x, given a positive slope when x's are equal
+
+given a point find the two points where the new x and y should be
+x2 + y2 = d2

@@ -1,5 +1,5 @@
-var polygon1 = [{x:10, y:0}, {x:10, y:80}, {x:20, y:80}, {x:20,y:0}]
-var polygon2 = [{x:36, y:398}, {x:36, y:408}, {x:46, y:408}, {x:46,y:398}]
+var polygon1 = [{x:20, y:61}, {x:20, y:71}, {x:30, y:71}, {x:30,y:61}]
+var polygon2 = [{x:10, y:462}, {x:10, y:542}, {x:20, y:542}, {x:20,y:462}]
 function checkCollision(polygon1, polygon2){
 
   var sideToCompare = 1;
@@ -35,6 +35,7 @@ function checkCollision(polygon1, polygon2){
         lowestXForPolygon1 = newPoint.x;
       }
     }
+
     var highestXForPolygon2 = undefined;
     var lowestXForPolygon2 = undefined;
     for(var i = 0; i < polygon2.length; i++){
@@ -54,7 +55,7 @@ function checkCollision(polygon1, polygon2){
       }
     }
 
-    if(lowestXForPolygon2 > highestXForPolygon1 && lowestXForPolygon1 < highestXForPolygon2){
+    if(!(lowestXForPolygon1 <= highestXForPolygon2 && lowestXForPolygon2 <= highestXForPolygon1)){
       return false;
     }
 
@@ -110,6 +111,7 @@ function checkCollision(polygon1, polygon2){
         lowestXForPolygon1 = newPoint.x;
       }
     }
+
     var highestXForPolygon2 = undefined;
     var lowestXForPolygon2 = undefined;
     for(var i = 0; i < polygon2.length; i++){
@@ -130,7 +132,7 @@ function checkCollision(polygon1, polygon2){
       }
     }
 
-    if(lowestXForPolygon1 > highestXForPolygon2 && lowestXForPolygon2 < highestXForPolygon1){
+    if(!(lowestXForPolygon1 <= highestXForPolygon2 && lowestXForPolygon2 <= highestXForPolygon1)){
       return false;
     }
 
@@ -152,3 +154,14 @@ function checkCollision(polygon1, polygon2){
 }
 
 console.log(checkCollision(polygon1, polygon2));
+
+var startingPoint = {x: 10, y: 40, rotation: 75, size: 80};
+var startPoint = {
+  xPos: Math.cos(-Math.PI/180*startingPoint.rotation)*startingPoint.size/2 - startingPoint.x,
+  yPos: Math.sin(-Math.PI/180*startingPoint.rotation)*startingPoint.size/2 - startingPoint.y
+};
+
+var endPoint = {
+  xPos: Math.cos(Math.PI/180*startingPoint.rotation)*startingPoint.size/2 + startingPoint.x,
+  yPos: Math.sin(Math.PI/180*startingPoint.rotation)*startingPoint.size/2 + startingPoint.y
+};
