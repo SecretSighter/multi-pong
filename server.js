@@ -12,9 +12,11 @@ var playerExample = {
   xPos: 34,
   yPos: 34,
   playerThickness: 10,
-  playerSize: 40
+  playerSize: 40,
+  socket: ""
 };
 
+var sockets = [];
 var players = [];
 var balls = [];
 var powerups = [];
@@ -30,9 +32,16 @@ app.get('/collision.js', function(req, res){
 });
 
 io.on('connection', function(socket){
+  players.push(socket.id);
+  io.emit('all_players', { players: players });
+  console.log(socket.id);
   console.log('user connected');
 });
 
 http.listen(port, function(){
   console.log('listing on *:' + port);
 });
+
+setInterval(function(){
+  io.emit('all_players', { players: players, balls: balls });
+}, 1000);

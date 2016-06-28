@@ -13,6 +13,10 @@
 
     <script>
 
+      socket.on('all_players', function(data){
+        console.log(data);
+      });
+
       document.getElementById("myCanvas").requestPointerLock = document.getElementById("myCanvas").requestPointerLock ||
                document.getElementById("myCanvas").mozRequestPointerLock ||
                document.getElementById("myCanvas").webkitRequestPointerLock;
